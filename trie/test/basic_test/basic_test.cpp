@@ -2,15 +2,15 @@
 #include <fstream>
 #include <string>
 #include <stdlib.h>
-#include "../../src/Trie.hpp"
+#include "../../src/trie.hpp"
 
 using namespace std;
-using namespace trie_basic;
+using namespace __TRIE__;
 
 void test(const int index, const bool log_to_console = false){
     ifstream input ( "input/grader_test"  + std::to_string(index) + ".in" );
     ifstream model( "output/grader_test" + std::to_string(index) + ".ok" );
-	trie_basic::Trie<node<int>> test_trie;
+	__TRIE__::TrieBase<LowerAlphaNode<int>> test_trie;
     while(input.good()){
         char symbol = '\0';
         string word;
@@ -45,14 +45,14 @@ void test(const int index, const bool log_to_console = false){
 int main(int argc, char **argv)
 {
     if(argc > 1){
-        for(int i=1; i < argc; ++i){
-            test(atoi(argv[i]), true);
+        for(int index=1; index < argc; ++index){
+            test(atoi(argv[index]), true);
         }
     }
 
     const int count = 20;
-    for(int i = 1; i <= count; ++i){
-        test(i, true);
+    for(int index = 1; index <= count; ++index){
+        test(index, true);
     }
 
 

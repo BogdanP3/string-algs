@@ -3,59 +3,64 @@
 #include <algorithm>
 #include <climits>
 #include <iostream>
-#include <string_view>
+#include <string>
+
 #include "node_types.hpp"
 
-namespace trie_basic{
+/*
+    TO DO:
+    * use string_view once fully supported
+*/
 
-    template<typename NODE_TYPE>
-    struct Trie{
-        static const int _INCORRECT_RANGE    = -1;
-        static const int _INCORRECT_SYMBOL   = -2;
-        static const int _MISSING_WORD       = -3;
+namespace __TRIE__{
 
-        NODE_TYPE* head_of_tree;
+    typedef const std::string& StringReference;
 
-		Trie() : head_of_tree(new NODE_TYPE()) {}
-        Trie(const Trie& ref)  : head_of_tree(ref.head_of_tree) {}
-        Trie(const Trie&& ref) : head_of_tree(std::move(ref.head_of_tree)) {ref.head_of_tree = nullptr;}
+    template<typename nodeType>
+    struct TrieBase{
 
-        ~Trie(){
-            if(head_of_tree){
-                delete head_of_tree;
+        nodeType* root;
+
+		TrieBase() : root(new nodeType()) {}
+        TrieBase(const TrieBase &  objReference) : root(objReference.root) {}
+        TrieBase(const TrieBase && objReference) : root(std::move(objReference.root)) {objReference.root = nullptr;}
+
+        ~TrieBase(){
+            if(root){
+                delete root;
             }
         }
 
-        static bool is_correct(std::string_view word){
+        static bool is_correct(StringReference word){
 			return !std::any_of(
 				word.begin(),
 				word.end(), 
-				[](const char symbol) {return NODE_TYPE::get_index(symbol) == -1; }
+				[](const char symbol) {return nodeType::getSymbolIndex(symbol) == -1; }
 			);
         }
 
-        typename NODE_TYPE::COUNTER_TYPE count(std::string_view word){
-            if(!Trie::is_correct(word)){
-                return Trie::_INCORRECT_SYMBOL;
+        typename nodeType::CounterType count(StringReference word){
+            if(!TrieBase::is_correct(word)){
+                return -1;
             }
 
-            NODE_TYPE* node_iterator = head_of_tree;
+            nodeType* node_iterator = root;
             for(auto c : word){
                 node_iterator = node_iterator->next(c);
                 if(!node_iterator){
                     return 0;
                 }
             }
-            return node_iterator->word_end;
+            return node_iterator->wordEnd;
         }
 
-        typename NODE_TYPE::COUNTER_TYPE prefix(std::string_view word){
-            if(!Trie::is_correct(word)){
-                return Trie::_INCORRECT_SYMBOL;
+        typename nodeType::CounterType prefix(StringReference word){
+            if(!TrieBase::is_correct(word)){
+                return -1;
             }
 
-            NODE_TYPE* node_iterator = head_of_tree;
-			assert(head_of_tree);
+            nodeType* node_iterator = root;
+			assert(root);
             size_t index = 0;
             for(auto c : word){
                 node_iterator = node_iterator->next(c);
@@ -67,43 +72,43 @@ namespace trie_basic{
             return index;
         }
 
-        int insert(std::string_view word){
-			if (!Trie::is_correct(word)) {
-                return Trie::_INCORRECT_SYMBOL;
+        int insert(StringReference word){
+			if (!TrieBase::is_correct(word)) {
+                return -1;
             }
 
-            NODE_TYPE* node_iterator = head_of_tree;
+            nodeType* node_iterator = root;
             for(auto c : word){
-                node_iterator = node_iterator->next(c, NODE_TYPE::_UPDATE | NODE_TYPE::_MARK);
+                node_iterator = node_iterator->next(c, nodeType::_UPDATE | nodeType::_MARK);
             }
 			if(!!node_iterator){
-                node_iterator->word_end++;
+                node_iterator->wordEnd++;
             }
             return 0;
         }
 
-        int remove(std::string_view word){
+        int remove(StringReference word){
             if(is_correct(word) == false){
-                return Trie::_INCORRECT_SYMBOL;
+                return -1;
             }
 
-            NODE_TYPE *node_iterator = head_of_tree;
+            nodeType *node_iterator = root;
             for(auto c : word){
                 node_iterator = node_iterator->next(c);
                 if(!node_iterator){
-                    return _MISSING_WORD;
+                    return -1;
                 }
             }
 
-            node_iterator = head_of_tree;
+            node_iterator = root;
             for(auto c : word){
-                node_iterator = node_iterator->next(c, NODE_TYPE::_UPDATE | NODE_TYPE::_UNMARK);
+                node_iterator = node_iterator->next(c, nodeType::_UPDATE | nodeType::_UNMARK);
                 if(!node_iterator){
                     return 0;
                 }
             }
             if(!!node_iterator){
-                node_iterator->word_end--;
+                node_iterator->wordEnd--;
             }
             return 0;
         }
